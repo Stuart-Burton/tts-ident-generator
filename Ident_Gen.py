@@ -35,8 +35,7 @@ Requirements:
   - ffmpeg on PATH OR set in GUI
   - Windows PowerShell (System.Speech TTS)
 """
-#Test change to file.
-#This is a further edit for test purposes
+
 from __future__ import annotations
 
 import os
@@ -158,6 +157,21 @@ def compute_rates(rate_label: str, scan: str) -> Tuple[str, str, str]:
             return "60000/1001", "30000/1001", "59.94i (29.97fps, 59.94 fields)"
         return "60000/1001", "60000/1001", "59.94p"
 
+def generate_tts_wav_duration_probe(
+    wav_path: Path,
+    ffmpeg_path: str,
+) -> float:
+    cp = subprocess.run(
+        [ffmpeg_path, "-hide_banner", "-i", str(wav_path)],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        text=True,
+    )
+    m = re.search(r"Duration:\s*(\d+):(\d+):(\d+)\.(\d+)", cp.stdout or "")
+    if not m:
+        return 0.0
+    hh, mm, ss, frac = m.groups()
+    return int(hh)*3600 + int(mm)*60 + int(ss) + (int(frac)/(10**len(frac)))
 
 # ---------------------------- Codec settings ----------------------------
 
@@ -453,11 +467,21 @@ def build_ffmpeg_command(
     # Per-channel IDs
     ch_wavs: List[Path] = []
     ch_durs: List[float] = []
+
     for ch in range(1, 17):
         wav = tts_dir / f"ch{ch:02d}.wav"
-        d = generate_tts_wav(f"Channel {ch}.", wav, ffmpeg_path, log_cb=log_cb)
+
+        if wav.exists():
+            log_cb(f"[cache] using existing ch{ch:02d}.wav")
+        else:
+            log_cb(f"[gen] creating ch{ch:02d}.wav")
+            generate_tts_wav(f"Channel {ch}.", wav, ffmpeg_path, log_cb=log_cb)
+
         ch_wavs.append(wav)
-        ch_durs.append(d)
+
+        # Always probe duration (do NOT assume consistency)
+        dur = generate_tts_wav_duration_probe(wav, ffmpeg_path)
+        ch_durs.append(dur)
 
     # Tone input is generated full-length; we delay it in the filtergraph.
     tone_input = f"sine=frequency={DEFAULT_TONE_HZ}:sample_rate={DEFAULT_SAMPLE_RATE}:duration={duration_s}"
