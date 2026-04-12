@@ -312,7 +312,7 @@ def build_filter_complex_video(
     boxborderw = max(4, int(fontsize * box_pad_factor))
 
     dt = (
-        f"drawtext=fontfile='C\\:/Windows/Fonts/calibri.ttf':"
+        f"drawtext=fontfile='C\\:/Windows/Fonts/arial.ttf':"
         f"text='{text_esc}':"
         f"fontsize={fontsize}:"
         f"fontcolor=white:"
