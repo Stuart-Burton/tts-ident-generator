@@ -144,6 +144,8 @@ The application allows you to configure:
 - `Font size`
 - `Enable dim box behind text`
 
+ Speech text is common for all channels, for example, the device name/number. It is spoken before the individual channel ident.
+
 ## Output
 
 By default, the generated file:
