@@ -209,4 +209,4 @@ Check the log window in the application. The script streams FFmpeg output direct
 
 ## License
 
-No license file is currently included in this repository. Add one before public distribution if you want to define reuse terms.
+GNU General Public Licemse v3
